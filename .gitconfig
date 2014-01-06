@@ -1,0 +1,24 @@
+[user]
+	name	= umisama
+	email	= umisama@fe2o3.jp
+[core]
+	editor	= vim
+[color]
+	diff	= auto
+	ui		= true
+[alias]
+	co		= checkout
+	dm		= diff master
+	dw		= diff --color-words
+	dc		= diff --cached
+	ds		= diff --staged
+	d1		= diff HEAD~
+	d2		= diff HEAD~~
+	d3		= diff HEAD~~~
+	tree	= log --graph --pretty='format:%C(yellow)%h%Creset %s %Cgreen(%an)%Creset %Cred%d%Creset'
+[push]
+	default	= matching
+[diff]
+	tool = vimdiff
+[merge]
+	tool = vimdiff
