@@ -70,3 +70,5 @@ export GOROOT=/usr/local/go
 export GOBIN=$GOROOT/bin
 export GOPATH=/home/umisama/go
 export PATH=$PATH:$GOBIN
+
+byobu
