@@ -44,7 +44,6 @@ colorscheme desert
 ""===============================================
 "" VISUAL
 ""===============================================
-
 "  Underline
 setlocal cursorline
 autocmd WinEnter * setlocal cursorline
@@ -67,7 +66,6 @@ set guioptions-=T
 ""===============================================
 "" SWAP AND ~ FILE
 ""===============================================
-
 set backup
 if has('win32')
 set backupdir=C:\\vim\\backups
@@ -141,9 +139,17 @@ filetype plugin indent on
 syntax on
 
 ""===============================================
+"" NEO BUNDLE 
+""===============================================
+set runtimepath+=$HOME/.vim/bundle/
+call neobundle#rc(expand('~/.vim/bundle/'))
+NeoBundleFetch 'Shugo/neobundle.vim'
+
+filetype plugin indent on
+
+""===============================================
 "" USER COMMAND
 ""===============================================
-
 " Load commands
 if has('win32')
 	execute 'source ~/_vimrc.command'
