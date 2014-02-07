@@ -129,6 +129,12 @@ nnoremap <C-F2> mb
 nnoremap <C-F3> mc
 nnoremap <C-F4> md
 
+" vim-quickhl(minimal)
+nmap <Space>m <Plug>(quickhl-manual-this)
+xmap <Space>m <Plug>(quickhl-manual-this)
+nmap <Space>M <Plug>(quickhl-manual-reset)
+xmap <Space>M <Plug>(quickhl-manual-reset)
+
 ""===============================================
 "" GOLANG
 ""===============================================
@@ -144,6 +150,9 @@ syntax on
 set runtimepath+=$HOME/.vim/bundle/
 call neobundle#rc(expand('~/.vim/bundle/'))
 NeoBundleFetch 'Shugo/neobundle.vim'
+
+NeoBundle 'tpope/vim-fugitive'
+NeoBundle 't9md/vim-quickhl'
 
 filetype plugin indent on
 
@@ -162,4 +171,3 @@ else
 		execute 'source ~/.vimrc.office'
 	endtry
 end
-
