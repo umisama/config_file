@@ -16,6 +16,7 @@ setopt auto_cd auto_remove_slash auto_name_dirs
 setopt extended_history hist_ignore_dups hist_ignore_space prompt_subst
 setopt extended_glob list_types no_beep always_last_prompt
 setopt cdable_vars sh_word_split auto_param_keys pushd_ignore_dups
+setopt auto_menu auto_list
 
 # Alias and functions
 alias copy='cp -ip' del='rm -i' move='mv -i'
@@ -31,6 +32,16 @@ alias pu=pushd po=popd dirs='dirs -v'
 alias -s pdf=acroread dvi=xdvi 
 alias -s {odt,ods,odp,doc,xls,ppt}=soffice
 alias -s {tgz,lzh,zip,arc}=file-roller
+
+alias -g L ' | less'
+alias -g G ' | grep'
+alias -g T ' | tail'
+alias -g K ' | tail -f'
+
+# inprove ls command
+alias ll='ls -l'
+alias ls='ls --color'
+export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
 
 # binding keys
 bindkey -e
