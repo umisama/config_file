@@ -8,7 +8,7 @@
 
 # Set Shell variable
 HISTSIZE=200 HISTFILE=~/.zhistory SAVEHIST=180
-PROMPT='%m{%n}%% '
+PROMPT='%m%% '
 RPROMPT='[%~]'
 
 # Set shell options
@@ -57,10 +57,10 @@ nprom () {
     local pct=$'%0(?||%18(?||%{\e[31m%}))%#%{\e[m%}'
     RPROMPT="%9(~||$rbase)"
     case "$USER" in
-      yatex)	PROMPT=$'%{\e[33m%}%U%m{%n}%%%{\e[m%}%u ' ;;
-      java)	PROMPT=$'%{\e[36m%}%U%m{%n}%%%{\e[m%}%u ' ;;
+      yatex)	PROMPT=$'%{\e[33m%}%U%m%%%{\e[m%}%u ' ;;
+      java)	PROMPT=$'%{\e[36m%}%U%m%%%{\e[m%}%u ' ;;
       *)
-    local pbase=$'%{\e[$[32+RANDOM%5]m%}%U%B%m{%n}%b'"$pct%u "
+    local pbase=$'%{\e[$[32+RANDOM%5]m%}%U%B%m%b'"$pct%u "
     PROMPT="%9(~|$rbase$lf|)$pbase"
     ;;
     esac
