@@ -138,8 +138,7 @@ xmap <Space>M <Plug>(quickhl-manual-reset)
 "" NEO BUNDLE 
 ""===============================================
 set runtimepath+=$HOME/.vim/bundle/
-call neobundle#rc(expand('~/.vim/bundle/'))
-
+call neobundle#begin(expand('~/.vim/bundle/'))
 NeoBundleFetch 'Shugo/neobundle.vim'
 NeoBundle 'tpope/vim-fugitive'
 NeoBundle 't9md/vim-quickhl'
@@ -163,6 +162,7 @@ NeoBundle 'Shougo/vimproc.vim', {
 NeoBundle 'jceb/vim-hier'
 NeoBundle 'dannyob/quickfixstatus'
 NeoBundle 'osyo-manga/vim-watchdogs'
+call neobundle#end()
 
 filetype plugin indent on
 
