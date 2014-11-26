@@ -16,7 +16,6 @@ set wildmenu
 set showcmd
 
 " Editing
-set autoindent
 set nostartofline
 set ruler
 set laststatus=2
@@ -39,7 +38,7 @@ set incsearch
 
 " colorscheme
 set t_Co=256
-colorscheme desert
+colorscheme elflord
 
 ""===============================================
 "" VISUAL
@@ -136,23 +135,34 @@ nmap <Space>M <Plug>(quickhl-manual-reset)
 xmap <Space>M <Plug>(quickhl-manual-reset)
 
 ""===============================================
-"" GOLANG
-""===============================================
-filetype off
-filetype plugin indent off
-set runtimepath+=$GOROOT/misc/vim
-filetype plugin indent on
-syntax on
-
-""===============================================
 "" NEO BUNDLE 
 ""===============================================
 set runtimepath+=$HOME/.vim/bundle/
 call neobundle#rc(expand('~/.vim/bundle/'))
-NeoBundleFetch 'Shugo/neobundle.vim'
 
+NeoBundleFetch 'Shugo/neobundle.vim'
 NeoBundle 'tpope/vim-fugitive'
 NeoBundle 't9md/vim-quickhl'
+NeoBundle 'othree/html5.vim'
+NeoBundle 'hail2u/vim-css3-syntax'
+NeoBundle 'pangloss/vim-javascript'
+NeoBundle 'leafgarland/typescript-vim'
+NeoBundle 'clausreinke/typescript-tools'
+NeoBundle 'fatih/vim-go'
+NeoBundle 'thinca/vim-quickrun'
+NeoBundle 'osyo-manga/shabadou.vim'
+NeoBundle 'Shougo/vimproc.vim', {
+\ 'build' : {
+\     'windows' : 'tools\\update-dll-mingw',
+\     'cygwin' : 'make -f make_cygwin.mak',
+\     'mac' : 'make -f make_mac.mak',
+\     'linux' : 'make',
+\     'unix' : 'gmake',
+\    },
+\ }
+NeoBundle 'jceb/vim-hier'
+NeoBundle 'dannyob/quickfixstatus'
+NeoBundle 'osyo-manga/vim-watchdogs'
 
 filetype plugin indent on
 
