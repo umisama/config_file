@@ -74,4 +74,12 @@ export GOBIN=$GOROOT/bin
 export GOPATH=/home/umisama/go
 export PATH=$PATH:$GOBIN
 
+# httpserver
+alias httpserver='python -m SimpleHTTPServer 8000'
+
+# path
+export GS3DEV=$GOPATH/src/git.tokyo.gehirn.co.jp/gs3
+
 byobu
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
