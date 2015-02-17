@@ -25,6 +25,7 @@ set visualbell
 set t_vb=
 set mouse=a
 set number
+set completeopt-=preview
 
 " Tab
 set shiftwidth=4
@@ -78,7 +79,6 @@ set directory=C:\\vim\\swaps
 else
 	set directory=~/.vim_swap
 endif
-
 
 ""===============================================
 "" KEY MAPPING
@@ -137,7 +137,7 @@ xmap <Space>M <Plug>(quickhl-manual-reset)
 ""===============================================
 "" NEO BUNDLE 
 ""===============================================
-set runtimepath+=$HOME/.vim/bundle/
+set runtimepath+=$HOME/.vim/bundle/neobundle.vim
 call neobundle#begin(expand('~/.vim/bundle/'))
 NeoBundleFetch 'Shugo/neobundle.vim'
 NeoBundle 'tpope/vim-fugitive'
@@ -148,8 +148,6 @@ NeoBundle 'pangloss/vim-javascript'
 NeoBundle 'leafgarland/typescript-vim'
 NeoBundle 'clausreinke/typescript-tools'
 NeoBundle 'fatih/vim-go'
-NeoBundle 'thinca/vim-quickrun'
-NeoBundle 'osyo-manga/shabadou.vim'
 NeoBundle 'Shougo/vimproc.vim', {
 \ 'build' : {
 \     'windows' : 'tools\\update-dll-mingw',
@@ -159,12 +157,56 @@ NeoBundle 'Shougo/vimproc.vim', {
 \     'unix' : 'gmake',
 \    },
 \ }
-NeoBundle 'jceb/vim-hier'
-NeoBundle 'dannyob/quickfixstatus'
-NeoBundle 'osyo-manga/vim-watchdogs'
+NeoBundle 'scrooloose/syntastic'
+NeoBundle 'Shougo/neocomplcache.vim'
+NeoBundle 'jason0x43/vim-js-indent'
 call neobundle#end()
-
 filetype plugin indent on
+NeoBundleCheck
+
+""===============================================
+"" NeoComplCache
+""===============================================
+"" neocomplcache
+NeoBundle 'Shougo/neocomplcache'
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplcache.
+let g:neocomplcache_enable_at_startup = 1
+" Use smartcase.
+let g:neocomplcache_enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplcache_min_syntax_length = 3
+let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
+
+" Define dictionary.
+let g:neocomplcache_dictionary_filetype_lists = {
+\	'default' : ''
+\	}
+
+" Plugin key-mappings.
+inoremap <expr><C-g>     	neocomplcache#undo_completion()
+
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  return neocomplcache#smart_close_popup() . "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <BS>: close popup and delete backword char.
+inoremap <expr><BS>	  neocomplcache#smart_close_popup()."\<C-h>"
+inoremap <expr><C-y>  neocomplcache#close_popup()
+inoremap <expr><C-e>  neocomplcache#cancel_popup()
+
+""===============================================
+"" golang
+""===============================================
+if !exists('g:neocomplcache_omni_patterns')
+    let g:neocomplcache_omni_patterns = {}
+endif
+let g:neocomplcache_omni_patterns.go = '[^.[:digit:] *\t]\.\w*'
 
 ""===============================================
 "" USER COMMAND
