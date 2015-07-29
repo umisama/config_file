@@ -10,8 +10,8 @@
 	co		= checkout
 	dm		= diff master
 	dw		= diff --color-words
-	dc		= diff --cached
-	ds		= diff --staged
+	dc		= diff --color-words --cached
+	ds		= diff --color-words --staged
 	d1		= diff HEAD~
 	d2		= diff HEAD~~
 	d3		= diff HEAD~~~
@@ -19,7 +19,7 @@
 	st		= status --short --branch
 	a		= add
 	l		= log --graph --pretty='format:%C(yellow)%h%Creset %s %Cgreen(%an)%Creset %Cred%d%Creset'
-	d		= diff HEAD
+	d		= diff --color-words HEAD
 	commitv	= commit -v
 [push]
 	default	= matching
