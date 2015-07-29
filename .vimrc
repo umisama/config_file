@@ -146,7 +146,6 @@ NeoBundle 'othree/html5.vim'
 NeoBundle 'hail2u/vim-css3-syntax'
 NeoBundle 'pangloss/vim-javascript'
 NeoBundle 'leafgarland/typescript-vim'
-NeoBundle 'clausreinke/typescript-tools'
 NeoBundle 'fatih/vim-go'
 NeoBundle 'Shougo/vimproc.vim', {
 \ 'build' : {
@@ -160,6 +159,9 @@ NeoBundle 'Shougo/vimproc.vim', {
 NeoBundle 'scrooloose/syntastic'
 NeoBundle 'Shougo/neocomplcache.vim'
 NeoBundle 'jason0x43/vim-js-indent'
+NeoBundle 'Shougo/neocomplcache'
+NeoBundle 'Quramy/tsuquyomi'
+NeoBundle 'jason0x43/vim-js-indent'
 call neobundle#end()
 filetype plugin indent on
 NeoBundleCheck
@@ -167,8 +169,6 @@ NeoBundleCheck
 ""===============================================
 "" NeoComplCache
 ""===============================================
-"" neocomplcache
-NeoBundle 'Shougo/neocomplcache'
 " Disable AutoComplPop.
 let g:acp_enableAtStartup = 0
 " Use neocomplcache.
