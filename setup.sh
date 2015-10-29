@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+sudo apt-get install -y byobu zsh gvim
+
 # file copy(symbolic)
 FILE_NAMES=( ".vimrc" ".vimrc.command" ".vimrc.office" ".zshrc" ".gitconfig" )
 for file in ${FILE_NAMES[@]}
