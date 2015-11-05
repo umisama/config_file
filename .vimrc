@@ -24,6 +24,7 @@ set laststatus=2
 set visualbell
 set t_vb=
 set mouse=a
+set ttymouse=xterm2
 set number
 set completeopt-=preview
 
