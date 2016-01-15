@@ -31,8 +31,8 @@ set number
 set completeopt-=preview
 
 " Tab
-set shiftwidth=4
-set tabstop=4
+set tabstop=2
+set shiftwidth=2
 
 " word finding
 set hlsearch
