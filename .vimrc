@@ -24,7 +24,9 @@ set laststatus=2
 set visualbell
 set t_vb=
 set mouse=a
-set ttymouse=xterm2
+if !has("nvim")
+	set ttymouse=xterm2
+endif
 set number
 set completeopt-=preview
 
