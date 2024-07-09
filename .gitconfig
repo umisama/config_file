@@ -1,8 +1,8 @@
 [user]
 	name	= umisama
-	email	= umisama@fe2o3.jp
+	email = umisama@ibaraki-office.com
 [core]
-	editor	= vim
+	editor = vim
 [color]
 	diff	= auto
 	ui		= true
