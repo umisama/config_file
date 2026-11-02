@@ -59,6 +59,7 @@ cd ~/config_file
   - `config/mise/config.toml` のツールを入れる（Neovim / node / go / python / tree-sitter / Codex）
   - git のユーザー情報を対話で聞き、`~/.config/git/config.local` に保存する
   - Claude Code を入れる
+  - Claude Code / Codex の設定（指示ファイル・権限・通知フック・MCP）を反映する
 
 ## 構成
 
@@ -74,6 +75,10 @@ config/tmux/               tmux.conf（byobu 風）, status.sh, broadcast.sh
 config/starship.toml
 config/mise/config.toml    言語ランタイム・CLI ツール
 wsl/wsl.conf               /etc/wsl.conf にマージする項目
+config/ai/                 AGENTS.md（Claude / Codex 共通の指示）, mcp.json（MCP サーバー）, notify.sh, toast.ps1（完了通知）
+config/claude/             CLAUDE.md, settings.json（~/.claude/settings.json にマージ）
+config/codex/              config.toml（~/.codex/config.toml にマージ）, hooks.json
+lib/merge_ai_config.py     Claude / Codex の設定マージ
 windows/setup.cmd, .ps1    Windows 側から WSL をセットアップ（UTF-8 BOM / CRLF）
 windows/inject.sh          setup.ps1 が使う、リポジトリを WSL 内にコピーするスクリプト
 ```
@@ -140,6 +145,28 @@ a と k だけは、Ctrl の有無で動作が変わる。
 - **起動**：`tm` で `main` セッションに入る（なければ作る）
 - **ログイン時に自動で入る**（byobu-enable 相当）：`~/.zshrc.local` に `DOTFILES_TMUX_AUTOSTART=1` を書く
 - **マシン固有の設定**：`~/.config/tmux/local.conf` に書く
+
+## Claude Code / Codex
+
+| 項目 | 実体 | 反映方法 |
+|---|---|---|
+| 共通の指示 | `config/ai/AGENTS.md` | `~/.codex/AGENTS.md` にリンク。`~/.claude/CLAUDE.md`（リンク）から `@~/.codex/AGENTS.md` で読み込む |
+| Claude の設定 | `config/claude/settings.json` | `~/.claude/settings.json` にマージ（リポジトリにあるキーを上書き。permissions は和集合。theme などは残す） |
+| Codex の設定 | `config/codex/config.toml` | `~/.codex/config.toml` の管理ブロックに差し込む（Codex が書いた信頼設定や model は残る） |
+| 完了・確認待ちの通知 | `config/ai/notify.sh` → `~/.local/bin/ai-notify` | Claude: Stop / Notification フック、Codex: `~/.codex/hooks.json`（Stop / PermissionRequest） |
+| MCP サーバー | `config/ai/mcp.json` | Claude は `claude mcp add-json`（ユーザースコープ）、Codex は config.toml の `[mcp_servers.*]` を生成 |
+
+- **MCP サーバー**：Context7（ライブラリのドキュメント）、Playwright、Chrome DevTools
+  - ブラウザ系の2つは、インストール済みの Google Chrome を headless で使う。Chrome は install.sh が入れる（amd64 のみ）
+  - スクリーンショットの日本語表示用に Noto CJK フォントも入れる
+  - 追加・変更は `config/ai/mcp.json` を編集して install.sh を実行する
+- **Bypass Permissions（確認なしモード）**
+  - Claude：`claude` は `--allow-dangerously-skip-permissions` 付きで起動するエイリアス。Shift+Tab で Bypass に切り替えられる。最初から Bypass で起動するなら `claude-yolo`
+  - Codex：`codex-yolo` で、確認なし・サンドボックスなしで起動する
+  - 確認なしモードは、プロンプトインジェクションなどに対する防御がなくなる。信頼できる作業でだけ使う
+- **設定を変えるとき**：リポジトリ側のファイルを編集して `./install.sh --user-only --no-packages` を実行する。`~/.claude/settings.json` や `~/.codex/config.toml` を直接編集しても、リポジトリには戻らない
+- **通知**：WSL では Windows のトースト通知、ネイティブ Ubuntu では `notify-send` を使う
+- **Codex のフック**：初回は Codex で `/hooks` を開いて信頼する必要がある。hooks.json を変えたときも同じ
 
 ## 覚え書き
 

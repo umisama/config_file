@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [{ "type": "command", "command": "@HOME@/.local/bin/ai-notify codex" }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": "@HOME@/.local/bin/ai-notify codex" }]
+      }
+    ]
+  }
+}

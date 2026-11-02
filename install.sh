@@ -139,6 +139,26 @@ EOF
   as_root apt-get install -y -qq code
 }
 
+install_chrome() {
+  # Playwright MCP / Chrome DevTools MCP が使う Google Chrome（stable）
+  log "Google Chrome"
+  if has google-chrome-stable; then
+    info "導入済み"
+    return 0
+  fi
+  if [[ $(dpkg --print-architecture) != amd64 ]]; then
+    warn "Google Chrome は amd64 のみ対応です。ブラウザ系 MCP は手動で設定してください"
+    return 0
+  fi
+  local deb
+  deb=$(mktemp --suffix=.deb)
+  curl -fsSLo "$deb" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  chmod 644 "$deb"   # apt の _apt ユーザーが読めるように
+  # パッケージの postinst が Google の apt リポジトリを登録するので、以後は apt upgrade で更新される
+  as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$deb"
+  rm -f "$deb"
+}
+
 set_login_shell() {
   log "ログインシェル（$TARGET_USER）"
   local zsh_path current
@@ -155,6 +175,7 @@ run_system() {
   if [[ $DO_PACKAGES == 1 ]]; then
     install_apt_packages
     install_mise_package
+    [[ $DO_AI == 1 ]] && install_chrome
   fi
   if is_wsl; then setup_wsl_conf; fi
   if [[ $DO_PACKAGES == 1 ]]; then
@@ -248,6 +269,105 @@ install_ai_clis() {
   fi
 }
 
+# ---------------------------------------------------------------------------
+# Claude Code / Codex の設定
+# ---------------------------------------------------------------------------
+# merge_ai_config claude|codex BASE TARGET [MCP_JSON] : lib/merge_ai_config.py でマージ（変更前の内容は退避）
+merge_ai_config() {
+  local kind=$1 base=$2 target=$3 py=/usr/bin/python3 tmp rc=0
+  [[ -x $py ]] || py=python3
+  tmp=$(mktemp)
+  [[ -f $target ]] && cp "$target" "$tmp"
+  "$py" "$DOTFILES/lib/merge_ai_config.py" "$@" || rc=$?
+  case $rc in
+    0)  info "変更なし: ${target/#$HOME/\~}" ;;
+    10) if [[ -s $tmp ]]; then
+          local rel=${target#"$HOME"/}
+          mkdir -p "$(dirname "$BACKUP_DIR/$rel")"
+          cp "$tmp" "$BACKUP_DIR/$rel"
+        fi
+        info "更新しました: ${target/#$HOME/\~}" ;;
+    *)  warn "${target/#$HOME/\~} のマージに失敗しました" ;;
+  esac
+  rm -f "$tmp"
+  return 0
+}
+
+# claude は PATH にないこともある（setup.ps1 から実行した場合など）
+claude_cmd() {
+  if has claude; then claude "$@"
+  elif [[ -x $HOME/.local/bin/claude ]]; then "$HOME/.local/bin/claude" "$@"
+  else return 127
+  fi
+}
+
+setup_ai_configs() {
+  log "Claude Code / Codex の設定"
+  # 共通の指示: config/ai/AGENTS.md（Codex は直接、Claude は CLAUDE.md から読み込む）
+  link "$DOTFILES/config/ai/AGENTS.md"     "$HOME/.codex/AGENTS.md"
+  link "$DOTFILES/config/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+  # 完了・確認待ちの通知（両方のフックから呼ぶ）
+  link "$DOTFILES/config/ai/notify.sh"     "$HOME/.local/bin/ai-notify"
+
+  # 本体が書き込む設定ファイルなので、リンクせずにマージする
+  merge_ai_config claude "$DOTFILES/config/claude/settings.json" "$HOME/.claude/settings.json"
+  merge_ai_config codex  "$DOTFILES/config/codex/config.toml"   "$HOME/.codex/config.toml" "$DOTFILES/config/ai/mcp.json"
+
+  # Codex のフック定義（絶対パスを埋め込んで生成）
+  local hooks_file=$HOME/.codex/hooks.json hooks
+  hooks=$(sed "s|@HOME@|$HOME|g" "$DOTFILES/config/codex/hooks.json")
+  if [[ ! -f $hooks_file || $(<"$hooks_file") != "$hooks" ]]; then
+    if [[ -f $hooks_file ]]; then
+      mkdir -p "$BACKUP_DIR/.codex"
+      cp "$hooks_file" "$BACKUP_DIR/.codex/hooks.json"
+    fi
+    printf '%s\n' "$hooks" >"$hooks_file"
+    info "更新しました: ~/.codex/hooks.json（Codex で /hooks を開いて信頼すると有効になります）"
+  else
+    info "変更なし: ~/.codex/hooks.json"
+  fi
+}
+
+register_mcp_servers() {
+  # config/ai/mcp.json が正。Codex は config.toml に生成済みなので、ここでは Claude Code に登録する
+  log "MCP サーバー（Claude Code: config/ai/mcp.json）"
+  local py=/usr/bin/python3 name spec n=0
+  [[ -x $py ]] || py=python3
+  if ! claude_cmd --version </dev/null >/dev/null 2>&1; then
+    warn "claude が見つからないので MCP の登録をスキップしました"
+    return 0
+  fi
+  while IFS=$'\t' read -r name spec; do
+    [[ -n $name ]] || continue
+    n=$((n + 1))
+    claude_cmd mcp remove --scope user "$name" </dev/null >/dev/null 2>&1 || true
+    if claude_cmd mcp add-json --scope user "$name" "$spec" </dev/null >/dev/null 2>&1; then
+      info "$name: 登録しました"
+    else
+      warn "$name を登録できませんでした"
+    fi
+  done < <("$py" "$DOTFILES/lib/merge_ai_config.py" claude-mcp "$DOTFILES/config/ai/mcp.json" "$HOME/.claude.json")
+  ((n)) || info "変更なし"
+  return 0
+}
+
+prefetch_mcp_packages() {
+  # npx の初回ダウンロードで MCP の起動がタイムアウトしないよう、先に取得しておく
+  log "MCP サーバーのパッケージを事前取得（npx）"
+  if ! has mise; then
+    warn "mise がないのでスキップしました"
+    return 0
+  fi
+  local pkg
+  for pkg in @playwright/mcp@latest chrome-devtools-mcp@latest; do
+    if mise exec -- npx -y "$pkg" --help </dev/null >/dev/null 2>&1; then
+      info "$pkg"
+    else
+      warn "$pkg を取得できませんでした（初回起動時に取得されます）"
+    fi
+  done
+}
+
 reload_tmux() {
   # tmux はサーバー起動時にしか設定を読まないので、起動中なら読み直す
   if has tmux && tmux list-sessions >/dev/null 2>&1; then
@@ -263,6 +383,9 @@ run_user() {
   [[ $DO_PACKAGES == 1 ]] && install_mise_tools
   setup_git_identity
   [[ $DO_PACKAGES == 1 && $DO_AI == 1 ]] && install_ai_clis
+  setup_ai_configs
+  [[ $DO_AI == 1 ]] && register_mcp_servers
+  [[ $DO_PACKAGES == 1 && $DO_AI == 1 ]] && prefetch_mcp_packages
   if is_wsl && [[ $DO_PACKAGES == 1 && $DO_VSCODE == 1 ]] && ! has code; then
     info "VS Code は Windows 側で windows/setup.ps1 を実行すると入ります"
   fi

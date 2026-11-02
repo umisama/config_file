@@ -20,9 +20,14 @@ fzf
 bat              # コマンド名は batcat → ~/.local/bin/bat にリンク
 eza
 zoxide
+jq
 starship
 shellcheck
 
 # zsh プラグイン（プラグインマネージャ不要）
 zsh-autosuggestions
 zsh-syntax-highlighting
+
+# ブラウザ系 MCP（Playwright / Chrome DevTools）のスクリーンショットで日本語・絵文字を表示する
+fonts-noto-cjk
+fonts-noto-color-emoji

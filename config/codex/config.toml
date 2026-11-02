@@ -1,0 +1,8 @@
+# install.sh が ~/.codex/config.toml に差し込む設定
+# Codex 自身が書き込む設定（[projects] の信頼設定、model など）はそのまま残る
+
+# 作業フォルダ内の編集・コマンド実行は自動、それ以外（ネットワーク・フォルダ外への書き込み）は確認
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+# MCP サーバーは config/ai/mcp.json から生成される（Claude Code と共通）

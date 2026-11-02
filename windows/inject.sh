@@ -26,7 +26,7 @@ mkdir -p "$(dirname "$dest")"
 # /mnt/c 上のファイルは権限が 777 に見えるので引き継がず、改めて設定する
 cp -R --no-preserve=mode,ownership "$src" "$dest"
 chmod -R u=rwX,go=rX "$dest"
-chmod +x "$dest/install.sh" "$dest/windows/inject.sh" "$dest"/config/tmux/*.sh
+find "$dest" -path "$dest/.git" -prune -o -name '*.sh' -exec chmod +x {} +
 
 # Windows 側の git 設定で改行が CRLF になっていた場合の保険（.ps1 / .cmd は除く）
 grep -rlI --exclude-dir=.git --exclude='*.ps1' --exclude='*.cmd' $'\r' "$dest" \
