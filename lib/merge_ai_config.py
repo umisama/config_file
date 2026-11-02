@@ -36,6 +36,8 @@ TOP_END = "# <<< dotfiles: top-level <<<"
 TBL_BEGIN = f"# >>> dotfiles: tables {NOTE} >>>"
 TBL_END = "# <<< dotfiles: tables <<<"
 MARKERS = {TOP_BEGIN, TOP_END, TBL_BEGIN, TBL_END}
+# 管理ブロックに書いたキー・テーブルの目録。次回のマージで「以前の管理分」を確実に取り除くために使う
+MANIFEST_PREFIX = "# dotfiles-managed:"
 HEADER_RE = re.compile(r"^\s*\[\[?\s*(.+?)\s*\]\]?\s*(#.*)?$")
 KEY_RE = re.compile(r"^\s*([A-Za-z0-9_-]+|\"[^\"]*\")\s*=")
 
@@ -88,6 +90,30 @@ def strip_blank(lines):
     while lines and not lines[-1].strip():
         lines.pop()
     return lines
+
+
+def read_manifest(lines):
+    """目録（以前の管理分のキーとテーブル名）を読む。古い形式で目録がなければ None。"""
+    for line in lines:
+        if line.startswith(MANIFEST_PREFIX):
+            fields = dict(f.split("=", 1) for f in line[len(MANIFEST_PREFIX):].split() if "=" in f)
+            split = lambda v: {x for x in v.split(",") if x}
+            return split(fields.get("keys", "")), split(fields.get("tables", ""))
+    return None
+
+
+def tables_in_blocks(lines):
+    """管理ブロックの中にあるテーブル名の一覧。"""
+    names, in_block = set(), False
+    for line in lines:
+        s = line.strip()
+        if s in (TOP_BEGIN, TBL_BEGIN):
+            in_block = True
+        elif s in (TOP_END, TBL_END):
+            in_block = False
+        elif in_block and HEADER_RE.match(line):
+            names.add(HEADER_RE.match(line).group(1))
+    return names
 
 
 def without_markers(lines, managed_keys):
@@ -161,11 +187,27 @@ def merge_codex(base_path: Path, target: Path, mcp_path: Path | None = None) -> 
     old_text = target.read_text() if target.exists() else ""
     if old_text.strip():
         tomllib.loads(old_text)  # 壊れた既存ファイルには手を出さない
-    head, sections = split_sections(without_markers(old_text.splitlines(), managed_keys))
-    head = strip_blank(l for l in head if not (KEY_RE.match(l) and KEY_RE.match(l).group(1) in managed_keys))
-    sections = [(n, strip_blank(ls)) for n, ls in sections if not is_managed(n)]
+    old_lines = old_text.splitlines()
+    manifest = read_manifest(old_lines)
+    prev_keys, prev_tables = manifest if manifest else (set(), None)
+    in_block_tables = tables_in_blocks(old_lines)
 
-    out = [TOP_BEGIN, *strip_blank(base_head), TOP_END, ""]
+    def was_managed(name):
+        """以前こちらが書いたテーブルか（管理対象から外したものを消すため）。"""
+        if name not in in_block_tables:
+            return False
+        if prev_tables is None:
+            # 目録のない古い形式: ブロック内のテーブルは projects（Codex の信頼設定）以外を以前の管理分とみなす
+            return not name.startswith("projects.")
+        return any(name == m or name.startswith(m + ".") for m in prev_tables)
+
+    drop_keys = managed_keys | prev_keys
+    head, sections = split_sections(without_markers(old_lines, drop_keys))
+    head = strip_blank(l for l in head if not (KEY_RE.match(l) and KEY_RE.match(l).group(1) in drop_keys))
+    sections = [(n, strip_blank(ls)) for n, ls in sections if not is_managed(n) and not was_managed(n)]
+
+    manifest_line = f"{MANIFEST_PREFIX} keys={','.join(sorted(managed_keys))} tables={','.join(managed_tables)}"
+    out = [TOP_BEGIN, manifest_line, *strip_blank(base_head), TOP_END, ""]
     if head:
         out += head + [""]
     if base_sections:

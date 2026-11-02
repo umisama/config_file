@@ -164,6 +164,9 @@ a と k だけは、Ctrl の有無で動作が変わる。
   - Claude：`claude` は `--allow-dangerously-skip-permissions` 付きで起動するエイリアス。Shift+Tab で Bypass に切り替えられる。最初から Bypass で起動するなら `claude-yolo`
   - Codex：`codex-yolo` で、確認なし・サンドボックスなしで起動する
   - 確認なしモードは、プロンプトインジェクションなどに対する防御がなくなる。信頼できる作業でだけ使う
+- **入力欄のキー操作**：各アプリの標準のまま（Enter：送信、Shift+Enter / Ctrl+J：改行）
+  - tmux の中でも Shift+Enter を区別できるよう、tmux.conf に `extended-keys` を入れてある
+  - Ctrl+Enter を送信にする案は見送った。Windows Terminal は Ctrl+Enter を Ctrl+J として送り、Claude Code（v2.1.316）は Ctrl+J に送信系の動作を割り当てても動かなかったため
 - **設定を変えるとき**：リポジトリ側のファイルを編集して `./install.sh --user-only --no-packages` を実行する。`~/.claude/settings.json` や `~/.codex/config.toml` を直接編集しても、リポジトリには戻らない
 - **通知**：WSL では Windows のトースト通知、ネイティブ Ubuntu では `notify-send` を使う
 - **Codex のフック**：初回は Codex で `/hooks` を開いて信頼する必要がある。hooks.json を変えたときも同じ
