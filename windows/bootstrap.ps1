@@ -250,9 +250,15 @@ function Step-Edge {
       Remove-ItemProperty -Path $run -Name $_.Name; Write-Info "自動起動を削除: $($_.Name)"
     }
   }
-  # ウィジェット（ニュースなどを Edge で開く）
-  Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Dsh' 'AllowNewsAndInterests' 0
-  Write-Info 'Edge の事前起動・バックグラウンド動作・サイドバー・ウィジェットを無効化'
+  Write-Info 'Edge の事前起動・バックグラウンド動作・既定ブラウザの催促・サイドバーを無効化'
+  # ウィジェット（ニュースなどを Edge で開く）。UCPD ドライバが powershell.exe などからの
+  # ウィジェット関連の書き込み（このポリシーや TaskbarDa）を拒否する環境があるので、失敗しても続ける
+  try {
+    Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Dsh' 'AllowNewsAndInterests' 0
+    Write-Info 'ウィジェットを無効化'
+  } catch [System.UnauthorizedAccessException] {
+    Write-Warn 'ウィジェットのポリシーは Windows に書き込みを拒否されました（UCPD）。必要なら gpedit.msc の「Windows コンポーネント > ウィジェット > ウィジェットを許可する」を無効にしてください'
+  }
 }
 
 function Wait-Winget {

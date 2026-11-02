@@ -17,10 +17,16 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$KeymapFile = (Join-Path (Split-Path -Parent $PSScriptRoot) 'config\windows\google-ime-keymap.txt')
+  # 省略時はリポジトリの config\windows\google-ime-keymap.txt
+  [string]$KeymapFile
 )
 
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 を -File で起動すると、param の既定値の評価時点では $PSScriptRoot が空なので本体で決める
+if (-not $KeymapFile) {
+  $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+  $KeymapFile = Join-Path (Split-Path -Parent $scriptDir) 'config\windows\google-ime-keymap.txt'
+}
 
 $FieldKeymapType  = 41
 $FieldKeymapTable = 42

@@ -15,6 +15,14 @@ if [[ -d $dest && $(cd "$dest" && pwd -P) == "$src" ]]; then
   exit 0
 fi
 
+# コピー先が git リポジトリなら、それを正本として上書きしない（WSL 内で clone して作業している前提）
+if [[ -e $dest/.git ]]; then
+  msg "$dest は git リポジトリなので上書きせず、そのまま使います（Windows 側のコピーは反映しません）"
+  msg "更新するときは WSL 内で 'git -C $dest pull' してください"
+  printf '%s\n' "$dest"
+  exit 0
+fi
+
 if [[ -e $dest || -L $dest ]]; then
   bk=$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)
   mkdir -p "$bk"

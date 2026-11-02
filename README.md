@@ -64,6 +64,7 @@ $HOME\config_file\windows\setup.cmd -Distro Ubuntu-26.04 -GitName "Taro" -GitEma
 3. リポジトリを WSL 内の `~/config_file` にコピーする（注入）
    - 既にあれば `~/.dotfiles-backup/<日時>/` に退避してからコピーする
    - `\\wsl.localhost\...` 上のリポジトリから実行した場合はコピーしない
+   - コピー先が git リポジトリ（WSL 内で clone したもの）なら上書きせず、そのまま使う
 4. `wsl -u root` で `install.sh --system-only` を実行する（sudo のパスワードは不要）
 5. 既定ユーザーで `install.sh --user-only` を実行する
 6. `/etc/wsl.conf` が変わったときは、ディストリビューションを再起動するか確認する
