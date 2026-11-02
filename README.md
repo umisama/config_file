@@ -178,8 +178,8 @@ a と k だけは、Ctrl の有無で動作が変わる。
 - **クリップボード**
   - コピー：OSC 52 を使う（Windows Terminal / tmux / SSH 越しでも動く）
   - Neovim での貼り付け：WSL では PowerShell 経由
-- **WSL の PATH**
-  - `appendWindowsPath=false` にしているので、Windows のコマンドは `config/zsh/conf.d/90-wsl.zsh` で通したものだけ使える
-  - 使えるもの：`code`、`winget`、`explorer`、`clip`、`powershell`、`open`
+- **WSL**
+  - Windows の PATH はそのまま引き継ぐ（`appendWindowsPath=true`）。`explorer.exe`、`code`、`clip.exe` などがそのまま使える
+  - `open`：zsh では Windows で開く（`open .` でエクスプローラ、`open file.pdf` で既定のアプリ、`open URL` で Windows のブラウザ）。Ubuntu 標準のものは `command open`
   - `/etc/wsl.conf` を変えた後は、Windows 側で `wsl --terminate <ディストリビューション>` を実行して再起動する
 - **以前の zsh 設定**：`~/.zshenv` で ZDOTDIR を設定するため、oh-my-zsh 時代の `~/.zshrc` は読まれなくなる
