@@ -1,0 +1,11 @@
+# 言語ランタイムと CLI ツール（`mise install` / 更新は `mise upgrade`）
+[tools]
+# Neovim（apt 版は 0.11 で、nvim-treesitter の main ブランチが要求する 0.12 に足りない）
+neovim = "latest"
+node = "lts"
+go = "latest"
+python = "latest"
+# Neovim の nvim-treesitter（main）がパーサのビルドに使う
+tree-sitter = "latest"
+# Codex CLI
+"npm:@openai/codex" = "latest"

@@ -1,0 +1,8 @@
+# 全リポジトリ共通の除外設定
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+Session.vim
+.claude/settings.local.json

@@ -1,0 +1,49 @@
+# ユーザー情報（user.name / user.email）は ~/.config/git/config.local に置く（install.sh が作成）
+
+[core]
+	editor = nvim
+[init]
+	defaultBranch = main
+[color]
+	ui = auto
+[push]
+	default = simple
+	autoSetupRemote = true
+[pull]
+	ff = only
+[fetch]
+	prune = true
+[rebase]
+	autoStash = true
+	autoSquash = true
+[rerere]
+	enabled = true
+[branch]
+	sort = -committerdate
+[diff]
+	algorithm = histogram
+	colorMoved = default
+	tool = nvimdiff
+[merge]
+	conflictStyle = zdiff3
+	tool = nvimdiff
+[alias]
+	co      = checkout
+	sw      = switch
+	dm      = diff master
+	dw      = diff --color-words
+	dc      = diff --color-words --cached
+	ds      = diff --color-words --staged
+	d1      = diff HEAD~
+	d2      = diff HEAD~~
+	d3      = diff HEAD~~~
+	dn      = diff --name-only
+	st      = status --short --branch
+	a       = add
+	l       = log --graph --pretty='format:%C(yellow)%h%Creset %s %Cgreen(%an)%Creset %Cred%d%Creset'
+	d       = diff --color-words HEAD
+	commitv = commit -v
+
+# 最後に読み込むので、ここで上の設定も上書きできる
+[include]
+	path = ~/.config/git/config.local

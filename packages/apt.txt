@@ -1,0 +1,28 @@
+# apt でインストールするパッケージ（# 以降はコメント）
+
+# 基本
+zsh
+git
+curl
+ca-certificates
+gnupg
+build-essential
+unzip
+less
+
+# 端末（Neovim は apt 版が古いので mise で入れる）
+tmux
+
+# モダン CLI
+ripgrep
+fd-find          # コマンド名は fdfind → ~/.local/bin/fd にリンク
+fzf
+bat              # コマンド名は batcat → ~/.local/bin/bat にリンク
+eza
+zoxide
+starship
+shellcheck
+
+# zsh プラグイン（プラグインマネージャ不要）
+zsh-autosuggestions
+zsh-syntax-highlighting
