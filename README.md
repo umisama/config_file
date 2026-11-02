@@ -4,6 +4,49 @@ WSL2 / Ubuntu 用の個人設定。zsh・Neovim・tmux・git・mise を XDG 配�
 
 ## セットアップ
 
+### Windows の新規セットアップ（Windows 全体 ＋ WSL）
+
+新しい Windows で、このリポジトリを `C:\` 以下に置いて（GitHub の「Download ZIP」を展開するか `git clone`）、`windows\bootstrap.cmd` を実行する。UAC で管理者に昇格し、途中の再起動をまたいで最後まで進む。
+
+```powershell
+C:\Users\me\config_file\windows\bootstrap.cmd
+C:\Users\me\config_file\windows\bootstrap.cmd -GitName "Taro" -GitEmail "taro@example.com" -Yes   # 確認なし・自動再起動
+C:\Users\me\config_file\windows\bootstrap.cmd -Skip edge,defaults                                  # 一部を飛ばす
+```
+
+| ステップ | 内容 |
+|---|---|
+| `keyboard` | CapsLock → Ctrl、半角/全角 → Esc（`Scancode Map`。全ユーザー・再起動後に有効） |
+| `privacy` | 利用履歴によるおすすめの無効化（スタートのおすすめ・最近使った項目、広告 ID、ヒント、アプリの自動インストール、アクティビティ履歴） |
+| `copilot` | Copilot・Recall・Click to Do・メモ帳/ペイントの AI 機能を無効化。Copilot アプリと Microsoft 365 Copilot アプリを削除 |
+| `search` | スタートの Web 検索・検索候補・検索のハイライトを無効化し、タスクバーの検索ボックスを隠す（インデクサーは残す） |
+| `edge` | Edge のポリシー（事前起動・バックグラウンド動作・既定ブラウザの催促・サイドバーを無効化）、ログオン時の自動起動を削除、ウィジェットを無効化 |
+| `apps` | winget で Vivaldi / Google 日本語入力 / VS Code / Claude / ChatGPT（Codex）/ LINE（Microsoft Store）/ Google ドライブ |
+| `ime` | Google 日本語入力を既定の入力方式にし、`config/windows/google-ime-keymap.txt` のキー設定を登録 |
+| `defaults` | ブラウザ（http/https/.html など）と PDF を Vivaldi に。既定の関連付けの XML（`C:\ProgramData\dotfiles\DefaultAssociations.xml`）をポリシーで指定する |
+| `wsl` | `wsl --install --no-distribution`（再起動が必要） |
+| （再起動） | 必要なときだけ。ログオン時に続きを実行するタスクを登録してから再起動する |
+| `dotfiles` | `setup.ps1 -Distro Ubuntu-26.04`（Ubuntu のインストール → この dotfiles の適用） |
+| `verify` | 既定のブラウザと WSL を確認する |
+
+- 状態とログは `%LOCALAPPDATA%\dotfiles-bootstrap\` に残る。失敗したときは原因を直してもう一度実行する（設定済みの項目は変わらない）。
+- 再起動後はサインインするだけでよい（自動ログオンはパスワードを保存することになるので使わない）。
+- 既定アプリのポリシーはサインインのたびに適用される。Windows 11 は既定アプリの直接の書き換えを保護している（UCPD）ため、この方法にしている。反映されないときは `verify` が設定画面を開くので、「既定値に設定」を押す。
+- Edge は Windows の一部としてアンインストールできない（EEA 以外）。設定で起動の機会を減らすだけで、Windows が直接 Edge を開くリンクは残る。
+- Office は入れない。Office ファイルは Google ドライブ上でブラウザの Google ドキュメントで開く。
+- Ubuntu のインストール時は、ユーザー名とパスワードを作成したら `exit` で抜ける。
+
+#### Google 日本語入力のキー設定
+
+`config/windows/google-ime-keymap.txt` は、プロパティ → キー設定 → 編集 →「エクスポート」で書き出した形式。IME のオンは 変換 / ひらがな / カタカナ / F13、オフは 無変換（半角/全角 は Esc にしているので使わない。英数 は Ctrl に変えた CapsLock と同じキー）。
+
+```powershell
+windows\google-ime-keymap.ps1                       # リポジトリのキー設定を登録
+windows\google-ime-keymap.ps1 -KeymapFile keymap.txt # 別のファイルを登録
+```
+
+キーマップを取り込むコマンドはないので、設定ファイル `config1.db`（protobuf）のキーマップの項目だけを書き換える。書き換える前にバックアップを取り、Google IME の常駐プロセスを止める（次に使うときに自動で起動する）。プロパティ画面で変更したら、もう一度エクスポートしてこのファイルを更新する。
+
 ### Windows から（WSL）
 
 Windows 側にこのリポジトリを clone して、`windows\setup.cmd` を実行する（ダブルクリックでも可）。
@@ -81,6 +124,9 @@ config/codex/              config.toml（~/.codex/config.toml にマージ）, h
 lib/merge_ai_config.py     Claude / Codex の設定マージ
 windows/setup.cmd, .ps1    Windows 側から WSL をセットアップ（UTF-8 BOM / CRLF）
 windows/inject.sh          setup.ps1 が使う、リポジトリを WSL 内にコピーするスクリプト
+windows/bootstrap.cmd, .ps1          Windows 全体のセットアップ（再起動をまたいで再開。最後に setup.ps1）
+windows/google-ime-keymap.ps1        Google 日本語入力にキー設定を登録
+config/windows/google-ime-keymap.txt Google 日本語入力のキー設定（エクスポート形式）
 ```
 
 ## マシン固有の設定（リポジトリ管理外）
