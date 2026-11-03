@@ -11,3 +11,6 @@ tree-sitter = "latest"
 "npm:@openai/codex" = "latest"
 gh = "latest"
 aws-cli = { version = "latest", symlink_bins = "true" }
+uv = "latest"
+# Cloudflare CLI（Workers / Pages など）
+"npm:wrangler" = "latest"
