@@ -9,3 +9,5 @@ python = "latest"
 tree-sitter = "latest"
 # Codex CLI
 "npm:@openai/codex" = "latest"
+gh = "latest"
+aws-cli = { version = "latest", symlink_bins = "true" }
