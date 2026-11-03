@@ -1,12 +1,23 @@
 # dotfiles
 
-WSL2 / Ubuntu 用の個人設定。zsh・Neovim・tmux・git・mise を XDG 配下（`~/.config`）で管理する。
+Windows と WSL2 / Ubuntu の個人用の開発環境。
+
+- **Windows**：不要な機能を止めたうえで、アプリ・キー配置・IME・WSL をセットアップする
+- **WSL / Ubuntu**：zsh・Neovim・tmux・git・mise・Claude Code / Codex を XDG 配下（`~/.config`）で管理する
 
 ## セットアップ
 
-### Windows の新規セットアップ（Windows 全体 ＋ WSL）
+状況に合わせて、入口を 1 つ選んで実行する。どれも何度実行しても同じ状態になる。
 
-新しい Windows で、このリポジトリを `C:\` 以下に置いて（GitHub の「Download ZIP」を展開するか `git clone`）、`windows\bootstrap.cmd` を実行する。UAC で管理者に昇格し、途中の再起動をまたいで最後まで進む。
+| 状況 | 実行するもの | 範囲 |
+|---|---|---|
+| 新しい Windows | `windows\bootstrap.cmd` | Windows 全体 → WSL → dotfiles（下の 3 つを内部で呼ぶ） |
+| Windows は設定済みで、WSL だけ | `windows\setup.cmd` | Ubuntu のインストール → dotfiles |
+| Ubuntu / WSL の中から | `./install.sh` | dotfiles だけ |
+
+### Windows 全体（bootstrap）
+
+このリポジトリを `C:\` 以下に置き（GitHub の「Download ZIP」を展開するか `git clone`）、`windows\bootstrap.cmd` を実行する。UAC で管理者に昇格し、途中の再起動をまたいで最後まで進む。
 
 ```powershell
 C:\Users\me\config_file\windows\bootstrap.cmd
@@ -14,33 +25,76 @@ C:\Users\me\config_file\windows\bootstrap.cmd -GitName "Taro" -GitEmail "taro@ex
 C:\Users\me\config_file\windows\bootstrap.cmd -Skip edge,defaults                                  # 一部を飛ばす
 ```
 
+| オプション | 内容 |
+|---|---|
+| `-Skip a,b` | 指定したステップを飛ばす |
+| `-Yes` | 確認せずに進める（再起動も自動） |
+| `-Distro` | WSL のディストリビューション（既定は `Ubuntu-26.04`） |
+| `-GitName` / `-GitEmail` | git のユーザー情報（`setup.ps1` に渡す） |
+| `-SkipAI` | Claude Code / Codex CLI を入れない |
+
+#### ステップ
+
+実行順は「Windows の設定 → アプリ → WSL の有効化 →（再起動）→ dotfiles → 確認」。下の表は目的ごとにまとめたもので、実行順は `windows/bootstrap.ps1` の先頭のコメントを見る。
+
+**不要な機能を止める・消す**
+
 | ステップ | 内容 |
 |---|---|
-| `keyboard` | CapsLock → Ctrl、半角/全角 → Esc（`Scancode Map`。全ユーザー・再起動後に有効） |
-| `privacy` | 利用履歴によるおすすめの無効化（スタートのおすすめ・最近使った項目・最近追加したアプリ、広告 ID、ヒント、アプリの自動インストール、アクティビティ履歴） |
+| `privacy` | スタートのおすすめ・最近使った項目・最近追加したアプリ、広告 ID、ヒント、アプリの自動インストール、アクティビティ履歴を無効化 |
 | `copilot` | Copilot・Recall・Click to Do・メモ帳/ペイントの AI 機能を無効化。Copilot アプリ（Appx 版・Win32 版）と Microsoft 365 Copilot アプリを削除し、Edge の更新サービスによる Copilot の再インストールを禁止 |
 | `search` | スタートの Web 検索・検索候補・検索のハイライトを無効化し、タスクバーの検索ボックスを隠す（インデクサーは残す） |
 | `edge` | Edge のポリシー（事前起動・バックグラウンド動作・既定ブラウザの催促・サイドバーを無効化）、ログオン時の自動起動を削除、ウィジェットを無効化 |
+| `debloat` | プリインストールアプリ（ニュース・天気・Xbox・ソリティア・Clipchamp・ヒント・フィードバック Hub・Mixed Reality Link・新しい Outlook・Start Experiences App など）と OneDrive を削除。Teams・クイック アシストは残す |
+
+**見た目・操作**
+
+| ステップ | 内容 |
+|---|---|
 | `explorer` | 拡張子・隠しファイルを表示、エクスプローラーを「PC」で開く、タスクビューボタンとホームの最近使った項目を隠す、Windows 11 の右クリックメニューを従来の形に戻す |
 | `visual` | ウィンドウ・タスクバーのアニメーションと透明効果を無効化 |
 | `input` | Game Bar・自動録画、固定キーなどのショートカット、マウスの加速を無効化。クリップボードの履歴（Win+V）を有効化（デバイス間の同期はしない） |
-| `debloat` | プリインストールアプリ（ニュース・天気・Xbox・ソリティア・Clipchamp・ヒント・フィードバック Hub・Mixed Reality Link・新しい Outlook・Start Experiences App など）と OneDrive を削除。Teams・クイック アシストは残す |
-| `developer` | 長いパス（260 文字制限の解除）と開発者モードを有効化 |
+| `keyboard` | CapsLock → Ctrl、半角/全角 → Esc（`Scancode Map`。全ユーザー・再起動後に有効） |
+| `ime` | Google 日本語入力を既定の入力方式にし、`config/windows/google-ime-keymap.txt` のキー設定を登録（[下記](#google-日本語入力のキー設定)） |
+
+**アプリ**
+
+| ステップ | 内容 |
+|---|---|
 | `apps` | winget で Vivaldi / Google 日本語入力 / VS Code / Claude / ChatGPT（Codex）/ LINE（Microsoft Store）/ Google ドライブ / Windows Terminal / PowerToys / 7-Zip / VLC / Slack / Zoom |
-| `ime` | Google 日本語入力を既定の入力方式にし、`config/windows/google-ime-keymap.txt` のキー設定を登録 |
 | `defaults` | ブラウザ（http/https/.html など）と PDF を Vivaldi に。既定の関連付けの XML（`C:\ProgramData\dotfiles\DefaultAssociations.xml`）をポリシーで指定する |
+
+**開発環境・WSL**
+
+| ステップ | 内容 |
+|---|---|
+| `developer` | 長いパス（260 文字制限の解除）と開発者モードを有効化 |
 | `wsl` | `wsl --install --no-distribution`（再起動が必要） |
 | `wslconfig` | `config/windows/wslconfig` を `%USERPROFILE%\.wslconfig` にコピー（既存のファイルは `.wslconfig.bak` に退避） |
 | （再起動） | 必要なときだけ。ログオン時に続きを実行するタスクを登録してから再起動する |
 | `dotfiles` | `setup.ps1 -Distro Ubuntu-26.04`（Ubuntu のインストール → この dotfiles の適用） |
 | `verify` | 既定のブラウザと WSL を確認する |
 
+#### 実行するときの注意
+
 - 状態とログは `%LOCALAPPDATA%\dotfiles-bootstrap\` に残る。失敗したときは原因を直してもう一度実行する（設定済みの項目は変わらない）。
 - 再起動後はサインインするだけでよい（自動ログオンはパスワードを保存することになるので使わない）。
-- 既定アプリのポリシーはサインインのたびに適用される。Windows 11 は既定アプリの直接の書き換えを保護している（UCPD）ため、この方法にしている。反映されないときは `verify` が設定画面を開くので、「既定値に設定」を押す。
-- Edge は Windows の一部としてアンインストールできない（EEA 以外）。設定で起動の機会を減らすだけで、Windows が直接 Edge を開くリンクは残る。
-- Office は入れない。Office ファイルは Google ドライブ上でブラウザの Google ドキュメントで開く。
 - Ubuntu のインストール時は、ユーザー名とパスワードを作成したら `exit` で抜ける。
+- `explorer` / `visual` / `input` は、サインインし直すと反映される。`.wslconfig` は `wsl --shutdown` の後に反映される。
+- **セットアップ済みのマシンに、後から増えたステップだけを適用する**：それ以外のステップを `-Skip` で飛ばす。`dotfiles` は WSL のディストリビューションを再起動することがあるので、WSL で作業中なら飛ばす。
+
+  ```powershell
+  # 例：explorer / visual / input / debloat / developer / apps / wslconfig だけを実行する
+  windows\bootstrap.cmd -Skip keyboard,privacy,copilot,search,edge,ime,defaults,wsl,dotfiles,verify
+  ```
+
+#### やらないこと・できないこと
+
+- **Edge**：Windows の一部としてアンインストールできない（EEA 以外）。設定で起動の機会を減らすだけで、Windows が直接 Edge を開くリンクは残る。
+- **Office**：入れない。Office ファイルは Google ドライブ上でブラウザの Google ドキュメントで開く。Microsoft 365 が入っているマシンのデスクトップ版 Outlook（Outlook (classic)）は Office の一部なので消さない。
+- **既定アプリ**：Windows 11 は既定アプリの直接の書き換えを保護している（UCPD）ため、ポリシーで指定している。サインインのたびに適用される。反映されないときは `verify` が設定画面を開くので、「既定値に設定」を押す。
+- **スタートのピン留め**：スクリプトからは外せない（「スタートからピン留めを解除」の実行は、昇格の有無にかかわらず `E_ACCESSDENIED` になる）。手で外す。
+- **会社の管理端末**：Intune やグループポリシーが一部の設定（開発者モードなど）を上書き・禁止することがある。
 
 #### Google 日本語入力のキー設定
 
@@ -53,7 +107,7 @@ windows\google-ime-keymap.ps1 -KeymapFile keymap.txt # 別のファイルを登�
 
 キーマップを取り込むコマンドはないので、設定ファイル `config1.db`（protobuf）のキーマップの項目だけを書き換える。書き換える前にバックアップを取り、Google IME の常駐プロセスを止める（次に使うときに自動で起動する）。プロパティ画面で変更したら、もう一度エクスポートしてこのファイルを更新する。
 
-### Windows から（WSL）
+### WSL だけ（setup）
 
 Windows 側にこのリポジトリを clone して、`windows\setup.cmd` を実行する（ダブルクリックでも可）。
 
@@ -77,7 +131,7 @@ $HOME\config_file\windows\setup.cmd -Distro Ubuntu-26.04 -GitName "Taro" -GitEma
 
 オプション：`-Yes`、`-SkipVSCode`、`-SkipAI`、`-NoRestart`、`-Target <WSL内のパス>`
 
-### Ubuntu / WSL の中から
+### Ubuntu / WSL の中から（install.sh）
 
 ```sh
 git clone <this repo> ~/config_file   # 場所はどこでもよい
@@ -85,7 +139,7 @@ cd ~/config_file
 ./install.sh                          # root 権限が必要な作業は sudo で行う
 ```
 
-何度実行しても同じ状態になる（既にあるファイルは `~/.dotfiles-backup/<日時>/` に退避してからリンクする）。
+既にあるファイルは `~/.dotfiles-backup/<日時>/` に退避してからリンクする。
 
 | オプション | 内容 |
 |---|---|
@@ -97,8 +151,6 @@ cd ~/config_file
 | `--user-only` | ユーザーの作業だけ（リンク / mise のツール / git / AI CLI） |
 | `--for-user U` | `--system-only` でログインシェルを変える対象ユーザー |
 
-### install.sh がやること
-
 - **system（root）**
   - `packages/apt.txt` のパッケージと mise 本体を apt で入れる
   - WSL のときは `wsl/wsl.conf` の内容を `/etc/wsl.conf` にマージする
@@ -106,7 +158,7 @@ cd ~/config_file
   - ログインシェルを zsh に変更する
 - **user**
   - `config/` 以下を `~/.config/` にリンクする（`~/.zshenv`、`fd` / `bat` も）
-  - `config/mise/config.toml` のツールを入れる（Neovim / node / go / python / tree-sitter / Codex）
+  - `config/mise/config.toml` のツールを入れる（言語ランタイム、Neovim、gh、aws-cli、uv、wrangler、Codex など）
   - git のユーザー情報を対話で聞き、`~/.config/git/config.local` に保存する
   - Claude Code を入れる
   - Claude Code / Codex の設定（指示ファイル・権限・通知フック・MCP）を反映する
@@ -114,33 +166,38 @@ cd ~/config_file
 ## 構成
 
 ```
-install.sh                 インストーラ
+install.sh                 インストーラ（WSL / Ubuntu）
 lib/common.sh              共通関数（link / confirm / ini_set など）
+lib/merge_ai_config.py     Claude / Codex の設定マージ
 packages/apt.txt           apt パッケージ一覧
 home/.zshenv               ZDOTDIR=~/.config/zsh を設定するだけ
+wsl/wsl.conf               /etc/wsl.conf にマージする項目
+
 config/zsh/                .zshrc と conf.d/*.zsh（番号順に読み込む。90-wsl は WSL のみ有効）
 config/nvim/               init.lua, lua/config/*（基本設定）, lua/plugins/*（lazy.nvim）
 config/git/config, ignore  git 共通設定（身元は config.local）
 config/tmux/               tmux.conf（byobu 風）, status.sh, broadcast.sh
 config/starship.toml
 config/mise/config.toml    言語ランタイム・CLI ツール
-wsl/wsl.conf               /etc/wsl.conf にマージする項目
 config/ai/                 AGENTS.md（Claude / Codex 共通の指示）, mcp.json（MCP サーバー）, notify.sh, toast.ps1（完了通知）
 config/claude/             CLAUDE.md, settings.json（~/.claude/settings.json にマージ）
 config/codex/              config.toml（~/.codex/config.toml にマージ）, hooks.json
-lib/merge_ai_config.py     Claude / Codex の設定マージ
-windows/setup.cmd, .ps1    Windows 側から WSL をセットアップ（UTF-8 BOM / CRLF）
-windows/inject.sh          setup.ps1 が使う、リポジトリを WSL 内にコピーするスクリプト
+
 windows/bootstrap.cmd, .ps1          Windows 全体のセットアップ（再起動をまたいで再開。最後に setup.ps1）
+windows/setup.cmd, .ps1              Windows 側から WSL をセットアップ
+windows/inject.sh                    setup.ps1 が使う、リポジトリを WSL 内にコピーするスクリプト
 windows/google-ime-keymap.ps1        Google 日本語入力にキー設定を登録
 config/windows/google-ime-keymap.txt Google 日本語入力のキー設定（エクスポート形式）
 config/windows/wslconfig             %USERPROFILE%\.wslconfig にコピーする WSL の設定
 ```
 
+`windows/` の `.ps1` / `.cmd` は UTF-8 BOM・CRLF にする（`.gitattributes` で CRLF を指定している）。
+
 ## マシン固有の設定（リポジトリ管理外）
 
 - `~/.zshrc.local`：zsh の追加設定（`.zshrc` の最後に読み込む）
 - `~/.config/git/config.local`：git の user.name / user.email など
+- `%USERPROFILE%\.wslconfig`：メモリの上限などマシンごとの値は、コピー先を直接編集する（`wslconfig` ステップをもう一度実行すると、リポジトリの内容で上書きされ、編集した方は `.wslconfig.bak` に残る）
 
 ## tmux（byobu 風）
 
@@ -227,6 +284,7 @@ a と k だけは、Ctrl の有無で動作が変わる。
 
 ## 覚え書き
 
+- **ツールの追加**：`config/mise/config.toml` に書いて `mise install`（`~/.config/mise` はこのリポジトリへのリンクなので、どちらを編集しても同じ）。別のマシンでは `git pull` の後に `mise install`
 - **更新**
   - mise 管理のツール（Codex 含む）：`mise upgrade`
   - Neovim のプラグイン：`:Lazy sync`
