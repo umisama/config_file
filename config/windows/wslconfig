@@ -1,0 +1,11 @@
+# %USERPROFILE%\.wslconfig にコピーされる（windows\bootstrap.ps1 の wslconfig ステップ）
+# 反映には 'wsl --shutdown' が必要。マシンごとに変えたい値はコピー先を直接編集する
+[wsl2]
+# メモリの上限（既定は Windows の物理メモリの 50%）
+#memory=8GB
+
+[experimental]
+# 使わなくなったメモリを少しずつ Windows に返す
+autoMemoryReclaim=gradual
+# 仮想ディスク（ext4.vhdx）を自動で縮める
+sparseVhd=true

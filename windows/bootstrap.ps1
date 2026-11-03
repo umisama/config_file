@@ -13,10 +13,16 @@
     copilot    Copilot / Recall などの AI 機能の無効化
     search     スタートメニューの Web 検索と、タスクバーの検索ボックスの無効化
     edge       Edge のポリシー（自動起動・バックグラウンド動作・既定ブラウザ催促・サイドバー）とウィジェットの無効化
+    explorer   拡張子・隠しファイルの表示、タスクビューボタン・最近使った項目の非表示、従来の右クリックメニュー
+    visual     アニメーション・透明効果の無効化
+    input      Game Bar・固定キーなどのショートカット・マウスの加速の無効化、クリップボードの履歴
+    debloat    プリインストールアプリの削除（ニュース・天気・Xbox・ソリティア・Clipchamp など）
+    developer  長いパス（260 文字制限の解除）と開発者モード
     apps       アプリのインストール（winget）
     ime        Google 日本語入力を既定の入力方式にし、キー設定を登録する
     defaults   既定アプリ（ブラウザ・PDF → Vivaldi）。ポリシーで設定し、サインイン時に反映される
     wsl        WSL の有効化
+    wslconfig  config\windows\wslconfig を %USERPROFILE%\.wslconfig にコピーする
     (再起動)
     dotfiles   Ubuntu のインストールと windows\setup.ps1 の実行
     verify     結果の確認
@@ -55,7 +61,9 @@ $Apps = @(
   @{ Id = 'Anthropic.Claude';           Name = 'Claude Desktop' },
   @{ Id = 'OpenAI.ChatGPT';             Name = 'ChatGPT（Codex を含む）' },
   @{ Id = 'XPFCC4CD725961';             Name = 'LINE'; Source = 'msstore' },
-  @{ Id = 'Google.GoogleDrive';         Name = 'Google ドライブ' }
+  @{ Id = 'Google.GoogleDrive';         Name = 'Google ドライブ' },
+  @{ Id = 'Microsoft.WindowsTerminal';  Name = 'Windows Terminal' },
+  @{ Id = 'Microsoft.PowerToys';        Name = 'PowerToys' }
 )
 
 function Write-Step([string]$Message) { Write-Host "`n==> $Message" -ForegroundColor Cyan }
@@ -161,6 +169,8 @@ function Step-Privacy {
   Set-Reg $adv 'Start_IrisRecommendations' 0     # スタートのヒント・おすすめアプリ
   Set-Reg $adv 'Start_AccountNotifications' 0    # スタートのアカウント関連の通知
   Set-Reg $adv 'Start_RecoPersonalizedSites' 0   # スタートのおすすめ Web サイト
+  # 新しいスタートメニューの「最近追加したアプリ」。おすすめの項目をすべて止めると「おすすめ」の欄が消える
+  Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Start' 'ShowRecentList' 0
   # 広告 ID・カスタマイズされたエクスペリエンス
   Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' 'Enabled' 0
   Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo' 'DisabledByGroupPolicy' 1
@@ -259,6 +269,88 @@ function Step-Edge {
   } catch [System.UnauthorizedAccessException] {
     Write-Warn 'ウィジェットのポリシーは Windows に書き込みを拒否されました（UCPD）。必要なら gpedit.msc の「Windows コンポーネント > ウィジェット > ウィジェットを許可する」を無効にしてください'
   }
+}
+
+function Step-Explorer {
+  $adv = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  Set-Reg $adv 'HideFileExt' 0          # 拡張子を表示
+  Set-Reg $adv 'Hidden' 1               # 隠しファイルを表示
+  Set-Reg $adv 'LaunchTo' 1             # 開いたときに「PC」を表示
+  Set-Reg $adv 'ShowTaskViewButton' 0   # タスクバーのタスクビューボタン
+  # エクスプローラーのホーム（クイック アクセス）に最近使ったファイル・よく使うフォルダを出さない
+  $exp = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer'
+  Set-Reg $exp 'ShowRecent' 0
+  Set-Reg $exp 'ShowFrequent' 0
+  # Windows 11 の右クリックメニューを従来の形にする（この CLSID の既定値を空にすると新しいメニューが無効になる）
+  New-Item -Path 'HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32' -Value '' -Force | Out-Null
+  Write-Info '拡張子・隠しファイルの表示、タスクビューボタン・最近使った項目の非表示、従来の右クリックメニュー（サインインし直すと反映）'
+}
+
+function Step-Visual {
+  Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' 'VisualFXSetting' 3   # 「カスタム」
+  Set-Reg 'HKCU:\Control Panel\Desktop\WindowMetrics' 'MinAnimate' '0' 'String'                         # 最小化・最大化のアニメーション
+  Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarAnimations' 0
+  Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' 'EnableTransparency' 0
+  Write-Info 'ウィンドウ・タスクバーのアニメーションと透明効果を無効化（サインインし直すと反映）'
+}
+
+function Step-Input {
+  # Game Bar と自動録画（Win+G やコントローラーのボタンで誤って起動しないように）
+  Set-Reg 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled' 0
+  Set-Reg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
+  Set-Reg 'HKCU:\Software\Microsoft\GameBar' 'UseNexusForGameBarEnabled' 0
+  Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR' 0
+  # Shift 5 回（固定キー）・NumLock 長押し（切り替えキー）・右 Shift 長押し（フィルターキー）のショートカット
+  Set-Reg 'HKCU:\Control Panel\Accessibility\StickyKeys' 'Flags' '506' 'String'
+  Set-Reg 'HKCU:\Control Panel\Accessibility\ToggleKeys' 'Flags' '58' 'String'
+  Set-Reg 'HKCU:\Control Panel\Accessibility\Keyboard Response' 'Flags' '122' 'String'
+  # マウスの加速（ポインターの精度を高める）
+  $mouse = 'HKCU:\Control Panel\Mouse'
+  Set-Reg $mouse 'MouseSpeed' '0' 'String'
+  Set-Reg $mouse 'MouseThreshold1' '0' 'String'
+  Set-Reg $mouse 'MouseThreshold2' '0' 'String'
+  # クリップボードの履歴（Win+V）。他のデバイスとの同期はしない
+  Set-Reg 'HKCU:\Software\Microsoft\Clipboard' 'EnableClipboardHistory' 1
+  Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowCrossDeviceClipboard' 0
+  Write-Info 'Game Bar・固定キーなどのショートカット・マウスの加速を無効化、クリップボードの履歴を有効化（サインインし直すと反映）'
+}
+
+# 削除するプリインストールアプリ。Teams・Outlook・クイック アシスト・スマートフォン連携は仕事で使うことがあるので残す
+$DebloatApps = @(
+  'Microsoft.BingNews',
+  'Microsoft.BingWeather',
+  'Microsoft.BingSearch',
+  'Microsoft.GamingApp',
+  'Microsoft.XboxGamingOverlay',
+  'Microsoft.MicrosoftSolitaireCollection',
+  'Clipchamp.Clipchamp',
+  'Microsoft.GetHelp',
+  'Microsoft.Getstarted',
+  'Microsoft.WindowsFeedbackHub',
+  'Microsoft.WindowsMaps',
+  'Microsoft.People',
+  'Microsoft.PowerAutomateDesktop',
+  'Microsoft.Todos'
+)
+
+function Step-Debloat {
+  foreach ($name in $DebloatApps) {
+    try {
+      $pkgs = @(Get-AppxPackage -AllUsers -Name $name -ErrorAction SilentlyContinue)
+      foreach ($pkg in $pkgs) { Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop; Write-Info "削除: $($pkg.Name)" }
+      # 新しく作るユーザーにも入らないようにする
+      Get-AppxProvisionedPackage -Online | Where-Object DisplayName -eq $name |
+        ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName | Out-Null; Write-Info "プロビジョニング解除: $name" }
+    } catch {
+      Write-Warn "$name を削除できませんでした: $($_.Exception.Message)"
+    }
+  }
+}
+
+function Step-Developer {
+  Set-Reg 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabled' 1                               # パスの 260 文字制限を外す
+  Set-Reg 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' 'AllowDevelopmentWithoutDevLicense' 1   # 開発者モード
+  Write-Info '長いパスと開発者モードを有効化'
 }
 
 function Wait-Winget {
@@ -371,6 +463,22 @@ function Step-Wsl {
   $script:RebootPending = $true
 }
 
+function Step-WslConfig {
+  $src  = Join-Path $RepoRoot 'config\windows\wslconfig'
+  $dest = Join-Path $env:USERPROFILE '.wslconfig'
+  $text = [IO.File]::ReadAllText($src)
+  if ((Test-Path $dest) -and ([IO.File]::ReadAllText($dest) -eq $text)) {
+    Write-Info "設定済み: $dest"
+    return
+  }
+  if (Test-Path $dest) {
+    Copy-Item $dest "$dest.bak" -Force
+    Write-Info "既存のファイルを退避: $dest.bak"
+  }
+  [IO.File]::WriteAllText($dest, $text, (New-Object System.Text.UTF8Encoding $false))
+  Write-Info "$dest を更新（WSL が動いているときは 'wsl --shutdown' の後に反映）"
+}
+
 function Step-Dotfiles {
   & wsl.exe --update *> $null
   $setupArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'setup.ps1'),
@@ -403,10 +511,16 @@ $Steps = @(
   @{ Name = 'copilot';  Title = 'Copilot の無効化';                               Run = { Step-Copilot } },
   @{ Name = 'search';   Title = 'Windows Search（Web 検索・検索ボックス）';       Run = { Step-Search } },
   @{ Name = 'edge';     Title = 'Edge の抑制';                                    Run = { Step-Edge } },
+  @{ Name = 'explorer'; Title = 'エクスプローラー・タスクバー・右クリックメニュー'; Run = { Step-Explorer } },
+  @{ Name = 'visual';   Title = 'アニメーション・透明効果の無効化';               Run = { Step-Visual } },
+  @{ Name = 'input';    Title = '誤操作の防止とクリップボードの履歴';             Run = { Step-Input } },
+  @{ Name = 'debloat';  Title = 'プリインストールアプリの削除';                   Run = { Step-Debloat } },
+  @{ Name = 'developer'; Title = '長いパス・開発者モード';                        Run = { Step-Developer } },
   @{ Name = 'apps';     Title = 'アプリのインストール';                           Run = { Step-Apps } },
   @{ Name = 'ime';      Title = 'Google 日本語入力';                              Run = { Step-Ime } },
   @{ Name = 'defaults'; Title = '既定アプリ（Vivaldi）';                          Run = { Step-Defaults } },
   @{ Name = 'wsl';      Title = 'WSL の有効化';                                   Run = { Step-Wsl } },
+  @{ Name = 'wslconfig'; Title = '.wslconfig';                                    Run = { Step-WslConfig } },
   @{ Name = 'reboot';   Title = '再起動';                                         Run = $null },
   @{ Name = 'dotfiles'; Title = "WSL ($Distro) と dotfiles";                     Run = { Step-Dotfiles } },
   @{ Name = 'verify';   Title = '確認';                                           Run = { Step-Verify } }
