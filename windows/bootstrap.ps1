@@ -16,7 +16,7 @@
     explorer   拡張子・隠しファイルの表示、タスクビューボタン・最近使った項目の非表示、従来の右クリックメニュー
     visual     アニメーション・透明効果の無効化
     input      Game Bar・固定キーなどのショートカット・マウスの加速の無効化、クリップボードの履歴
-    debloat    プリインストールアプリの削除（ニュース・天気・Xbox・ソリティア・Clipchamp など）
+    debloat    プリインストールアプリの削除（ニュース・天気・Xbox・ソリティア・Clipchamp・新しい Outlook・OneDrive など）
     developer  長いパス（260 文字制限の解除）と開発者モード
     apps       アプリのインストール（winget）
     ime        Google 日本語入力を既定の入力方式にし、キー設定を登録する
@@ -63,7 +63,11 @@ $Apps = @(
   @{ Id = 'XPFCC4CD725961';             Name = 'LINE'; Source = 'msstore' },
   @{ Id = 'Google.GoogleDrive';         Name = 'Google ドライブ' },
   @{ Id = 'Microsoft.WindowsTerminal';  Name = 'Windows Terminal' },
-  @{ Id = 'Microsoft.PowerToys';        Name = 'PowerToys' }
+  @{ Id = 'Microsoft.PowerToys';        Name = 'PowerToys' },
+  @{ Id = '7zip.7zip';                  Name = '7-Zip' },
+  @{ Id = 'VideoLAN.VLC';               Name = 'VLC media player' },
+  @{ Id = 'SlackTechnologies.Slack';    Name = 'Slack' },
+  @{ Id = 'Zoom.Zoom';                  Name = 'Zoom Workplace' }
 )
 
 function Write-Step([string]$Message) { Write-Host "`n==> $Message" -ForegroundColor Cyan }
@@ -226,6 +230,22 @@ function Step-Copilot {
       Write-Warn "$name を削除できませんでした: $($_.Exception.Message)"
     }
   }
+  # Edge ベースの Win32 版 Copilot（C:\Program Files (x86)\Microsoft\Copilot）。
+  # Edge の更新サービスが入れ直さないよう、先にインストールを禁止してからアンインストールする
+  Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate' 'Install{C50565E9-CCCF-44B4-BA15-5AC5C6569197}' 0
+  Get-Process copilotapp, copilotapp_proxy -ErrorAction SilentlyContinue | Stop-Process -Force
+  $uninstallKeys = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                   'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                   'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
+  $entries = @(Get-ItemProperty $uninstallKeys -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -eq 'Copilot' -and $_.UninstallString -match 'copilot_setup\.exe' })
+  foreach ($e in $entries) {
+    # UninstallString は「"実行ファイル" 引数...」の形
+    if ($e.UninstallString -notmatch '^"([^"]+)"\s*(.*)$') { Write-Warn "Copilot のアンインストールコマンドを解釈できません: $($e.UninstallString)"; continue }
+    $p = Start-Process -FilePath $Matches[1] -ArgumentList "$($Matches[2]) --force-uninstall" -Wait -PassThru
+    # Edge 系のインストーラーはアンインストールの成功を 19 で返す
+    if ($p.ExitCode -in 0, 19) { Write-Info "削除: Copilot（Win32 版）" } else { Write-Warn "Copilot（Win32 版）をアンインストールできませんでした (exit $($p.ExitCode))" }
+  }
   Write-Info 'Copilot・Recall・メモ帳/ペイントの AI 機能を無効化'
 }
 
@@ -315,7 +335,7 @@ function Step-Input {
   Write-Info 'Game Bar・固定キーなどのショートカット・マウスの加速を無効化、クリップボードの履歴を有効化（サインインし直すと反映）'
 }
 
-# 削除するプリインストールアプリ。Teams・Outlook・クイック アシスト・スマートフォン連携は仕事で使うことがあるので残す
+# 削除するプリインストールアプリ。Teams・クイック アシスト・スマートフォン連携は仕事で使うことがあるので残す
 $DebloatApps = @(
   'Microsoft.BingNews',
   'Microsoft.BingWeather',
@@ -330,7 +350,10 @@ $DebloatApps = @(
   'Microsoft.WindowsMaps',
   'Microsoft.People',
   'Microsoft.PowerAutomateDesktop',
-  'Microsoft.Todos'
+  'Microsoft.Todos',
+  'Microsoft.MixedRealityLink',
+  'Microsoft.OutlookForWindows',      # 新しい Outlook（Microsoft 365 のデスクトップ版 Outlook は残る）
+  'Microsoft.StartExperiencesApp'
 )
 
 function Step-Debloat {
@@ -345,6 +368,13 @@ function Step-Debloat {
       Write-Warn "$name を削除できませんでした: $($_.Exception.Message)"
     }
   }
+  # OneDrive は Appx ではないので winget でアンインストールする
+  if (-not (Wait-Winget)) { Write-Warn 'winget が見つからないため OneDrive はアンインストールしませんでした'; return }
+  & winget.exe list --id Microsoft.OneDrive -e --accept-source-agreements *> $null
+  if ($LASTEXITCODE -ne 0) { Write-Info 'OneDrive はインストールされていません'; return }
+  Get-Process OneDrive -ErrorAction SilentlyContinue | Stop-Process -Force
+  & winget.exe uninstall --id Microsoft.OneDrive -e --silent --accept-source-agreements --disable-interactivity
+  if ($LASTEXITCODE -eq 0) { Write-Info '削除: OneDrive' } else { Write-Warn "OneDrive をアンインストールできませんでした (winget exit $LASTEXITCODE)" }
 }
 
 function Step-Developer {

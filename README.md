@@ -18,15 +18,15 @@ C:\Users\me\config_file\windows\bootstrap.cmd -Skip edge,defaults               
 |---|---|
 | `keyboard` | CapsLock → Ctrl、半角/全角 → Esc（`Scancode Map`。全ユーザー・再起動後に有効） |
 | `privacy` | 利用履歴によるおすすめの無効化（スタートのおすすめ・最近使った項目・最近追加したアプリ、広告 ID、ヒント、アプリの自動インストール、アクティビティ履歴） |
-| `copilot` | Copilot・Recall・Click to Do・メモ帳/ペイントの AI 機能を無効化。Copilot アプリと Microsoft 365 Copilot アプリを削除 |
+| `copilot` | Copilot・Recall・Click to Do・メモ帳/ペイントの AI 機能を無効化。Copilot アプリ（Appx 版・Win32 版）と Microsoft 365 Copilot アプリを削除し、Edge の更新サービスによる Copilot の再インストールを禁止 |
 | `search` | スタートの Web 検索・検索候補・検索のハイライトを無効化し、タスクバーの検索ボックスを隠す（インデクサーは残す） |
 | `edge` | Edge のポリシー（事前起動・バックグラウンド動作・既定ブラウザの催促・サイドバーを無効化）、ログオン時の自動起動を削除、ウィジェットを無効化 |
 | `explorer` | 拡張子・隠しファイルを表示、エクスプローラーを「PC」で開く、タスクビューボタンとホームの最近使った項目を隠す、Windows 11 の右クリックメニューを従来の形に戻す |
 | `visual` | ウィンドウ・タスクバーのアニメーションと透明効果を無効化 |
 | `input` | Game Bar・自動録画、固定キーなどのショートカット、マウスの加速を無効化。クリップボードの履歴（Win+V）を有効化（デバイス間の同期はしない） |
-| `debloat` | プリインストールアプリ（ニュース・天気・Xbox・ソリティア・Clipchamp・ヒント・フィードバック Hub など）を削除。Teams・Outlook・クイック アシストは残す |
+| `debloat` | プリインストールアプリ（ニュース・天気・Xbox・ソリティア・Clipchamp・ヒント・フィードバック Hub・Mixed Reality Link・新しい Outlook・Start Experiences App など）と OneDrive を削除。Teams・クイック アシストは残す |
 | `developer` | 長いパス（260 文字制限の解除）と開発者モードを有効化 |
-| `apps` | winget で Vivaldi / Google 日本語入力 / VS Code / Claude / ChatGPT（Codex）/ LINE（Microsoft Store）/ Google ドライブ / Windows Terminal / PowerToys |
+| `apps` | winget で Vivaldi / Google 日本語入力 / VS Code / Claude / ChatGPT（Codex）/ LINE（Microsoft Store）/ Google ドライブ / Windows Terminal / PowerToys / 7-Zip / VLC / Slack / Zoom |
 | `ime` | Google 日本語入力を既定の入力方式にし、`config/windows/google-ime-keymap.txt` のキー設定を登録 |
 | `defaults` | ブラウザ（http/https/.html など）と PDF を Vivaldi に。既定の関連付けの XML（`C:\ProgramData\dotfiles\DefaultAssociations.xml`）をポリシーで指定する |
 | `wsl` | `wsl --install --no-distribution`（再起動が必要） |
