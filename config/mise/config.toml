@@ -5,6 +5,8 @@ neovim = "latest"
 node = "lts"
 go = "latest"
 python = "latest"
+# ソースからビルドする（依存は packages/apt.txt）
+php = "8.4"
 # Neovim の nvim-treesitter（main）がパーサのビルドに使う
 tree-sitter = "latest"
 # Codex CLI
@@ -14,3 +16,7 @@ aws-cli = { version = "latest", symlink_bins = "true" }
 uv = "latest"
 # Cloudflare CLI（Workers / Pages など）
 "npm:wrangler" = "latest"
+
+[env]
+# vfox-php は Linux で sodium / gmp や GD の FreeType・JPEG・WebP 対応を有効にしないので、configure に追加する
+PHP_EXTRA_CONFIGURE_OPTIONS = "--with-sodium --with-gmp --with-freetype --with-jpeg --with-webp"

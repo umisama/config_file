@@ -31,3 +31,25 @@ zsh-syntax-highlighting
 # ブラウザ系 MCP（Playwright / Chrome DevTools）のスクリーンショットで日本語・絵文字を表示する
 fonts-noto-cjk
 fonts-noto-color-emoji
+
+# mise の PHP（vfox-php）がソースからビルドするのに使う
+autoconf
+bison
+re2c
+pkg-config
+libxml2-dev
+libssl-dev
+libsqlite3-dev
+libcurl4-openssl-dev
+libpng-dev
+libonig-dev
+libicu-dev
+libzip-dev
+libreadline-dev
+zlib1g-dev
+# 以下は config/mise/config.toml の PHP_EXTRA_CONFIGURE_OPTIONS で有効にする拡張が使う
+libsodium-dev
+libgmp-dev
+libfreetype-dev
+libjpeg-dev
+libwebp-dev

@@ -158,7 +158,7 @@ cd ~/config_file
   - ログインシェルを zsh に変更する
 - **user**
   - `config/` 以下を `~/.config/` にリンクする（`~/.zshenv`、`fd` / `bat` も）
-  - `config/mise/config.toml` のツールを入れる（言語ランタイム、Neovim、gh、aws-cli、uv、wrangler、Codex など）
+  - `config/mise/config.toml` のツールを入れる（言語ランタイム（PHP はソースからビルド）、Neovim、gh、aws-cli、uv、wrangler、Codex など）
   - git のユーザー情報を対話で聞き、`~/.config/git/config.local` に保存する
   - Claude Code を入れる
   - Claude Code / Codex の設定（指示ファイル・権限・通知フック・MCP）を反映する
